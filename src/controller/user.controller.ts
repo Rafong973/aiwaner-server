@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Inject, Post } from '@midwayjs/core';
+import { Body, Controller, Get, Inject, Post, Put } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { UserService } from '../service/user.service';
 import { User } from '../entity/user.entity';
-import { RegisterDot, UserLoginDot } from '../dto/user';
+import { RegisterDto, updateInfoDto, UserLoginDto } from '../dto/user';
 import { SecretService } from '../service/secret.service';
 import { IgnoreAuth } from '../decorator/ignoreAuth';
 import { RedisService } from '@midwayjs/redis';
@@ -30,7 +30,7 @@ export class APIController {
   // 登录接口
   @Post('/login')
   @IgnoreAuth()
-  async getUser(@Body() params: UserLoginDot) {
+  async getUser(@Body() params: UserLoginDto) {
     // 验证码登录
     let user: IObjectKeys;
     if (params.type.toString() === '1') {
@@ -72,7 +72,7 @@ export class APIController {
   //注册接口
   @Post('/register')
   @IgnoreAuth()
-  async createUser(@Body() params: RegisterDot) {
+  async createUser(@Body() params: RegisterDto) {
     const codeKey = this.smsService.setKey(1, params.mobile);
     const code = await this.redisService.get(codeKey);
     this.redisService.del(codeKey);
@@ -95,5 +95,31 @@ export class APIController {
   async getUserInfo() {
     const { id } = this.ctx.user;
     return await this.userService.getUser(id);
+  }
+
+  // 修改个人信息
+  @Put('/update')
+  async updateInfo(@Body() params: updateInfoDto) {
+    const user = this.ctx.user;
+    if (params.nickName) {
+      const has = await User.findOne({
+        where: {
+          [Op.and]: [
+            { nickName: params.nickName },
+            { id: { [Op.ne]: user.id } },
+          ],
+        },
+      });
+      if (has) throw new Error('该昵称已被占用');
+    }
+    const [afterNum] = await User.update(
+      {
+        ...params,
+      },
+      {
+        where: { id: user.id },
+      }
+    );
+    return !!afterNum;
   }
 }

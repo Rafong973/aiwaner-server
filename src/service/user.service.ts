@@ -18,8 +18,12 @@ export class UserService {
     const user = await User.findOne({
       where: { id },
     });
-    delete user.dataValues.password;
-    return user;
+    const result = user.dataValues;
+    if (result.password) {
+      result.hasPass = true;
+    }
+    delete result.password;
+    return result;
   }
 
   // 设置新的Token
