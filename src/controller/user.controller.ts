@@ -1,4 +1,4 @@
-import { Inject, Controller, Post, Body, Get } from '@midwayjs/core';
+import { Body, Controller, Get, Inject, Post } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { UserService } from '../service/user.service';
 import { User } from '../entity/user.entity';
@@ -93,6 +93,7 @@ export class APIController {
 
   @Get('/info')
   async getUserInfo() {
-    return this.ctx.user;
+    const { id } = this.ctx.user;
+    return await this.userService.getUser(id);
   }
 }

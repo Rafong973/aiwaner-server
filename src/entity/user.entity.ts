@@ -53,6 +53,17 @@ export class User extends Model {
   })
   id: number;
 
+  // 手机号码
+  @Index({
+    name: 'idx_user_mobile',
+    unique: true,
+  })
+  @Column({
+    type: DataType.CHAR(11),
+    allowNull: false,
+  })
+  mobile: string;
+
   @Column({
     type: DataType.CHAR(50),
     allowNull: true,
@@ -85,8 +96,7 @@ export class User extends Model {
 
   @Column({
     type: DataType.STRING,
-    defaultValue:
-      'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0',
+    defaultValue: 'https://dangan-public-storage.jinhuishineng.cn/0.png',
   })
   avatarUrl: string;
 
@@ -114,14 +124,14 @@ export class User extends Model {
   })
   city: string;
 
-  // 手机号码
-  @Index({
-    name: 'idx_user_mobile',
-    unique: true,
-  })
   @Column({
-    type: DataType.CHAR(11),
-    allowNull: false,
+    type: DataType.CHAR(50),
   })
-  mobile: string;
+  area: string;
+
+  // 个人简介
+  @Column({
+    type: DataType.CHAR(255),
+  })
+  profile: string;
 }

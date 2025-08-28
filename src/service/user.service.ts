@@ -1,8 +1,8 @@
-import { Provide, Inject, App } from '@midwayjs/core';
-import { Context, Application } from '@midwayjs/koa';
-import { IUserOptions } from '../interface';
+import { App, Inject, Provide } from '@midwayjs/core';
+import { Application, Context } from '@midwayjs/koa';
 import { JwtService } from '@midwayjs/jwt';
 import { IObjectKeys } from '../interface/user';
+import { User } from '../entity/user.entity';
 
 @Provide()
 export class UserService {
@@ -14,13 +14,12 @@ export class UserService {
 
   @Inject()
   jwt: JwtService;
-  async getUser(options: IUserOptions) {
-    return {
-      uid: options.uid,
-      username: 'mockedName',
-      phone: '12345678901',
-      email: 'xxx.xxx@xxx.com',
-    };
+  async getUser(id: string | number) {
+    const user = await User.findOne({
+      where: { id },
+    });
+    delete user.dataValues.password;
+    return user;
   }
 
   // 设置新的Token

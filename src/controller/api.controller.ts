@@ -1,10 +1,11 @@
-import { Inject, Controller, Post, Body } from '@midwayjs/core';
+import { Inject, Controller, Post, Body, Get } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { UserService } from '../service/user.service';
 import { smsDto } from '../dto/common';
 import { SmsService } from '../service/sms.service';
 import { IgnoreAuth } from '../decorator/ignoreAuth';
 import { RedisService } from '@midwayjs/redis';
+import { QiNiuService } from '../service/qiniu.service';
 
 @Controller('/api')
 export class APIController {
@@ -20,6 +21,9 @@ export class APIController {
   @Inject()
   redisService: RedisService;
 
+  @Inject()
+  qiNiu: QiNiuService;
+
   @Post('/sendSMS')
   @IgnoreAuth()
   async sendSMS(@Body() params: smsDto) {
@@ -29,5 +33,10 @@ export class APIController {
     const code = await this.smsService.sendSms(params.type, params.mobile);
     console.log(code);
     return !!code;
+  }
+
+  @Get('/upload/getToken')
+  async getUploadToken() {
+    return this.qiNiu.getToken();
   }
 }
