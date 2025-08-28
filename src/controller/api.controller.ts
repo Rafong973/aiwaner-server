@@ -27,6 +27,7 @@ export class APIController {
     const has = await this.redisService.get(codeKey);
     if (has) throw new Error('请勿重复发送');
     const code = await this.smsService.sendSms(params.type, params.mobile);
+    console.log(code);
     return !!code;
   }
 }

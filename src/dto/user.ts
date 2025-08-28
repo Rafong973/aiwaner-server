@@ -9,8 +9,13 @@ export class UserLoginDot {
   @Rule(RuleType.alternatives(requiredNumber, requiredString))
   mobile: string;
 
-  @Rule(RuleType.alternatives(requiredNumber, requiredString))
-  code: string;
+  @Rule(
+    RuleType.alternatives(
+      RuleType.string().allow(''),
+      RuleType.number().allow('')
+    )
+  )
+  code?: string;
 
   @Rule(RuleType.string())
   password?: string;

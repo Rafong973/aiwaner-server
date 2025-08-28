@@ -7,6 +7,8 @@ import { SecretService } from '../service/secret.service';
 import { IgnoreAuth } from '../decorator/ignoreAuth';
 import { RedisService } from '@midwayjs/redis';
 import { SmsService } from '../service/sms.service';
+import { IObjectKeys } from '../interface/user';
+import { Op } from 'sequelize';
 
 @Controller('/user')
 export class APIController {
@@ -30,29 +32,37 @@ export class APIController {
   @IgnoreAuth()
   async getUser(@Body() params: UserLoginDot) {
     // 验证码登录
+    let user: IObjectKeys;
     if (params.type.toString() === '1') {
       const codeKey = this.smsService.setKey(2, params.mobile);
       const code = await this.redisService.get(codeKey);
+      console.log(code);
       if (!code || parseInt(code) !== parseInt(params.code))
         throw new Error('验证码错误或已过期');
       this.redisService.del(codeKey);
-    }
-
-    const user = await User.findOne({
-      where: {
-        mobile: params.mobile,
-      },
-    });
-    if (!user) throw new Error('找不到该用户');
-    const userData = user.dataValues;
-    if (params.type.toString() === '2') {
-      if (!userData.password)
+      const [result, boolean] = await User.findOrCreate({
+        where: {
+          mobile: params.mobile,
+        },
+      });
+      if (!boolean) throw new Error('登录失败');
+      user = result;
+    } else {
+      user = await User.findOne({
+        where: {
+          [Op.or]: [{ mobile: params.mobile }, { userName: params.mobile }],
+        },
+      });
+      if (!user) throw new Error('用户不存在');
+      if (!user.dataValues.password)
         throw new Error('用户未设置密码，请使用验证码登录');
       const password = this.secretService.encrypt(params.password);
-      if (password !== userData.password) {
+      if (password !== user.dataValues.password) {
         throw new Error('密码不正确');
       }
     }
+
+    const userData = user.dataValues;
 
     delete userData.password;
     const token = await this.userService.setToken(userData);
@@ -83,7 +93,6 @@ export class APIController {
 
   @Get('/info')
   async getUserInfo() {
-    console.log(this.ctx.user);
     return this.ctx.user;
   }
 }
